@@ -65,7 +65,7 @@ var_ordering == a function with the following template
         ==> returns Variable 
 
     csp is a CSP object---the heuristic can use this to get access to the
-    variables and constraints of the problem. The assigned variables can be
+    variables and constraints of the addproblem. The assigned variables can be
     accessed via methods, the values assigned can also be accessed.
 
     var_ordering returns the next Variable to be assigned, as per the definition
@@ -138,22 +138,22 @@ def prop_GAC(csp, newVar=None):
 
     contraints = None
     pruned = []
-    queue_gac = [] #Using a list as a queue not familiar with the queue library
+    queue_gac = queue.Queue() #Using a list as a queue not familiar with the queue library
 
     # Check if the new variable exists, if it does, get all constraints with the newVar (same as FC)
+    # Put these contraints into the queue directly 
     if newVar is not None:
-        contraints = csp.get_cons_with_var(var = newVar)
+        for constraint in csp.get_cons_with_var(var = newVar):
+            queue_gac.put(constraint)
     else:
-        contraints = csp.get_all_cons()
-
-    # Put these contraints into the queue (list)
-    queue_gac = contraints
+        for constraint in csp.get_all_cons():
+            queue_gac.put(constraint) 
 
     ############# GAC ENFORCE (implemented from lecture slides) ###################
     # Ensuring the queue is actually not empty
-    while queue_gac:
+    while queue_gac.empty() is not True:
         # take out and return the first element in the list
-        constraint = queue_gac.pop() 
+        constraint = queue_gac.get(0) 
         # Going through the scope of the constraint 
         for variable in constraint.get_scope():
             for domain_value in variable.cur_domain():
@@ -169,8 +169,8 @@ def prop_GAC(csp, newVar=None):
                         # Pushing all constraints C' so that variables within the scope of C' 
                         for c_prime in csp.get_cons_with_var(var=variable):
                             # Checking if C' is not in the queue already to add to the queue
-                            if c_prime not in queue_gac:
-                                queue_gac.append(c_prime)
+                            if c_prime not in queue_gac.queue:
+                                queue_gac.put(c_prime)
 
     return True, pruned
 
