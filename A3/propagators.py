@@ -113,16 +113,31 @@ def prop_FC(csp, newVar=None):
             # using the first index because we have only one unassigned variable for FC
             unassigned_var = constraint.get_unasgn_vars()[0] 
 
+            # Must create a list of values, one for each variable in the constraints scope for the constraint.check() method 
+            scope_vals = []
+            unassigned_index = 0
+            # Need to enumerate in order to keep track of the indexes of the contraint.scope() list of variables to test ONLY THE PLACE OF the unassigned variable 
+            # in the current domain
+            for i, variable in enumerate(constraint.get_scope()):
+                # Checking if the value is already assigned to the 
+                if variable.get_assigned_value() is not None:
+                    scope_vals.append(variable.get_assigned_value())
+                if variable == unassigned_var:
+                    unassigned_index = i
+                    # Placeholder for now until we assign a domain value from the current domain of the unassigned value later on
+                    scope_vals.append(None)
+
             # check FC for each constraint in the current domain
             for domain_value in unassigned_var.cur_domain():
-                # Check if this domain value and the unassigned variable has a supporting tupple
-                if constraint.has_support(var=unassigned_var, val=domain_value) is not True:
+                # Test all domain value with the constraint scope values to check if it satifies the constraint
+                scope_vals[unassigned_index] = domain_value
+                if not constraint.check(vals=scope_vals):
                     # Now we know we have to prune this value and add it to the list of (var, val) tuples
                     unassigned_var.prune_value(domain_value)
                     # Add to the pruned list
                     pruned.append((unassigned_var, domain_value))
 
-            # Check for a domain wipeout now
+            # Check for a domain wipeout now (DWO)
             if unassigned_var.cur_domain_size() == 0:
                 return False, pruned
         else:
@@ -162,7 +177,7 @@ def prop_GAC(csp, newVar=None):
                     pruned.append((variable, domain_value))
                     variable.prune_value(domain_value)
 
-                    # Domain Wipeout 
+                    # Domain Wipeout (DWO)
                     if variable.cur_domain_size() == 0:
                         return False, pruned
                     else:
