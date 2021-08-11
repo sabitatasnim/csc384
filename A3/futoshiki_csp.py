@@ -63,14 +63,8 @@ def extract_variables(futo_grid):
 
     # Turn the list into an array 
     variable_array = [variable_list[i : i+n] for i in range(0, len(variable_list), n)]
-        #     variable_row.append(variable)
-        # variable_array.append(variable_row)
-    
-    # Extract the variables all in one list as well instead of a list of list to ensure we can also pass it into the CSP
-    # variable_list = itertools.chain.from_iterable(variable_array)
-    # variable_list = list(variable_list)
 
-    # Returns both variable array (for easier tracking for adding row/col constraints + mapping to the futo_grid) and variable list for the return for meach model
+    # Returns both variable array (return type for model + for easier tracking for adding row/col constraints + mapping to the futo_grid) and variable list for the csp
     return variable_array, variable_list
 
 '''
